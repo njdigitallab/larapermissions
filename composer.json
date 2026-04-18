@@ -1,0 +1,29 @@
+{
+    "name": "njdigitallab/larapermissions",
+    "description": "Larapermissions is a laravel package that allows you to integrate permissions into your application.",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "NjDigitalLab\\LaraPermissions\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Jenry Ollivierre",
+            "email": "jenry@jenryollivierre.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "NjDigitalLab\\LaraPermissions\\Providers\\AppServiceProvider"
+            ],
+            "aliases": {
+                "LaraPermissions": "NjDigitalLab\\LaraPermissions\\LarapPermissions"
+            }
+        }
+    }
+}

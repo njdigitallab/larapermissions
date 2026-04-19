@@ -22,7 +22,7 @@
                 "NjDigitalLab\\LaraPermissions\\Providers\\AppServiceProvider"
             ],
             "aliases": {
-                "LaraPermissions": "NjDigitalLab\\LaraPermissions\\LarapPermissions"
+                "LaraPermissions": "NjDigitalLab\\LaraPermissions\\LaraPermissions"
             }
         }
     }

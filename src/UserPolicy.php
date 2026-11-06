@@ -54,7 +54,7 @@ abstract class UserPolicy implements HasAbility, HasAuthUserPermissions
         }
 
         // User must be able to view themself
-        if ($user->uuid == $model->uuid) {
+        if ($user->id == $model->id) {
             return true;
         }
 
@@ -76,7 +76,7 @@ abstract class UserPolicy implements HasAbility, HasAuthUserPermissions
         }
 
         // Everyone should be able to update their profile
-        if ($user->uuid == $model->uuid) {
+        if ($user->id == $model->id) {
             return true;
         }
 
@@ -94,7 +94,7 @@ abstract class UserPolicy implements HasAbility, HasAuthUserPermissions
     public function trash(Model $user, Model $model): bool
     {
         // User cannot trash themselves
-        if ($user->uuid == $model->uuid) {
+        if ($user->id === $model->id) {
             return false;
         }
 
@@ -116,7 +116,7 @@ abstract class UserPolicy implements HasAbility, HasAuthUserPermissions
     public function restore(Model $user, Model $model): bool
     {
         // User cannot restore themself
-        if ($user->uuid == $model->uuid) {
+        if ($user->id == $model->id) {
             return false;
         }
 
@@ -138,7 +138,7 @@ abstract class UserPolicy implements HasAbility, HasAuthUserPermissions
     public function destroy(Model $user, Model $model): bool
     {
         // User cannot destroy themself
-        if ($user->uuid == $model->uuid) {
+        if ($user->id == $model->id) {
             return false;
         }
 

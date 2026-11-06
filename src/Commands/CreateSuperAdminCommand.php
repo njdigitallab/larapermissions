@@ -5,8 +5,9 @@ namespace NjDigitalLab\LaraPermissions\Commands;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use function Laravel\Prompts\text;
+use NjDigitalLab\LaraPermissions\LaraPermissions;
 use function Laravel\Prompts\password;
+use function Laravel\Prompts\text;
 
 class CreateSuperAdminCommand extends Command
 {
@@ -29,15 +30,22 @@ class CreateSuperAdminCommand extends Command
      */
     public function handle()
     {
-        $firstName = text(
-            label: 'What is the first name?',
-            required: true
-        );
+        if (LaraPermissions::isUsingNameOnly()) {
+            $name = text(
+                label: 'What is the name?',
+                required: true
+            );
+        } else {
+            $firstName = text(
+                label: 'What is the first name?',
+                required: true
+            );
 
-        $lastName = text(
-            label: 'What is the last name?',
-            required: true
-        );
+            $lastName = text(
+                label: 'What is the last name?',
+                required: true
+            );
+        }
 
         $email = text(
             label: 'what is the email address?',
@@ -51,9 +59,18 @@ class CreateSuperAdminCommand extends Command
 
         $userClass = config('auth.providers.users.model');
 
-        new $userClass()->forceFill([
-            'first_name' => $firstName,
-            'last_name' => $lastName,
+        if (LaraPermissions::isUsingNameOnly()) {
+            $attributes = [
+                'name' => $name,
+            ];
+        } else {
+            $attributes = [
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+            ];
+        }
+
+        new $userClass()->forceFill($attributes + [
             'email' => $email,
             'password' => $password,
             'email_verified_at' => now(),

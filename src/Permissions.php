@@ -41,7 +41,11 @@ abstract class Permissions implements HasDomainId
      */
     public static function getPermissionsList(): array
     {
-        return [
+        if (array_key_exists(static::getDomainId().'_list', static::$cache)) {
+            return static::$cache[static::getDomainId().'_list'];
+        }
+
+        $list = [
             'menu' => static::getMenuPermissions(),
             'view_list' => static::getViewListPermissions(),
             'view_trash_list' => static::getViewTrashListPermissions(),
@@ -54,6 +58,14 @@ abstract class Permissions implements HasDomainId
             'search' => static::getSearchPermissions(),
             'bulk_request' => static::getBulkRequestPermissions(),
         ];
+
+        if (method_exists(static::class, 'customPermissions')) {
+            $list = array_merge($list, static::customPermissions());
+        }
+
+        static::$cache[static::getDomainId().'_list'] = $list;
+
+        return $list;
     }
 
     /**

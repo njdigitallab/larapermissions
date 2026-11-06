@@ -1,16 +1,25 @@
 # Lara Permissions
 
-### About
+- [About](#About)
+- [Installation](#Installation)
+- [Setup](#Setup)
+- [Getting Started](#Getting-Started)
+- [Creating Super Admin](#Creating-Super-Admin)
+- [Policy Methods and Required Permissions](#Policy-Methods-and-Required-Permissions)
+- [Assigning Permissions To Users](#Assigning-Permissions-To-Users)
+- [Adding Custom Permissions](#Adding-Custom-Permissions)
 
-Lara Permissions is a laravel package that allows you to integrate permissions into your application.
+## About
 
-### Installation
+A Laravel package that allows you to integrate permissions into your application.
 
-Install with composer `composer require njdigitallab/larapermissions`.
+## Installation
 
-### Setup
+Install with `composer require njdigitallab/larapermissions`.
 
-1) Publish the package migration via artisan commmand `php artisan vendor:publish --tag=larapermissions-migrations`.
+## Setup
+
+1) Publish the package migration via `php artisan vendor:publish --tag=larapermissions-migrations`.
 
 2) Run the artisan command `php artisan migrate`.
 
@@ -30,30 +39,108 @@ class User extends Authenticatable
 }
 ```
 
-### Getting Started
+This provides two useful method, which are `isSuperAdmin` and `getPermissions`.
+
+```php
+// Check if the user is a super admin. Returns true or false.
+$user->isSuperAdmin(); 
+
+// Get an array of the user permissions
+$user->getPermissions();
+
+// $user->getPermissions() Example Output
+['user:create', 'user:update', 'post:create', 'post:update', 'post:trash']
+```
+
+Getting and setting attributes is also handled by the trait.
+
+## Getting Started
 
 Create a policy with the artisan command `php artisan larapermissions:policy PostPolicy`.
 
 This will create a `PostPolicy.php` file in your `App/Policies` directory and a `PostPermissions.php` file in your `App/Permissions` directory.
 
-### Assigning Permissions to Users
-
-`NjDigitalLab\LaraPermissions\PermissionsList::getPermissionsList()` will fetch the list of available permissions based on the Policies created.
-
-For example, if you create a `PostPolicy.php` and `UserPolicy.php` file, the following permissions will be available:
+The policy file is already setup to read from your permissions file and generally does not need further configuration.
 
 ```php
-[
-    'post' => ['post:create', 'post:update', 'post:trash', 'post:restore', 'post:destroy'],
-    'user' => ['user:create', 'user:update', 'user:trash', 'user:restore', 'user:destroy'],
-]
+<?php
+
+namespace App\Policies;
+
+use App\Permissions\PostPermissions;
+use NjDigitalLab\LaraPermissions\Policy;
+
+class PostPolicy extends Policy
+{
+    /**
+     * Get the permissions class name.
+     */
+    public function getPermissionsClassName(): string
+    {
+        return PostPermissions::class;
+    }
+}
 ```
 
-In your create/update view file, you can loop through the array and display the permissions and use checkboxes to select which permissions the user should have. The submitted permissions should be saved to the `permissions` attribute on the user model.
+If you are using a `UserPolicy`, extend the `NjDigitalLab\LaraPermissions\UserPolicy` class instead. This has more sensible policy checks that are more user specific.
 
-![Alt Text](./images/user-view.png)
+```php
+<?php
 
-### Policy Methods and Valid Permissions
+namespace App\Policies;
+
+use App\Permissions\UserPermissions;
+use NjDigitalLab\LaraPermissions\UserPolicy as Policy;
+
+class UserPolicy extends Policy
+{
+    /**
+     * Get the permissions class name.
+     */
+    public function getPermissionsClassName(): string
+    {
+        return UserPermissions::class;
+    }
+}
+```
+
+## Creating Super Admin
+
+Run the artisan command `php artisan larapermissions:create-super-admin`.
+
+The Super Admin will be able to perform any action, except trash/restore/destroy themselves.
+
+By default, super admin creation will ask for a first and last name. If you are using name only, in the boot method of your service provider, call the `LaraPermissions::useNameOnly` method. The creation script will only ask for a name now, and not first and last name.
+
+```php
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use NjDigitalLab\LaraPermissions\LaraPermissions;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        LaraPermissions::useNameOnly();
+    }
+}
+```
+
+## Policy Methods and Required Permissions
 
 ```php
 public function menu(Model $user): bool
@@ -87,7 +174,7 @@ public function performCreate(Model $user): bool
 // Must have the create permission
 
 public function performView(Model $user): bool
-// Must have the update permission
+// Must have the update permission.
 
 public function performUpdate(Model $user): bool
 // Must have the update permission
@@ -108,8 +195,68 @@ public function performBulkRequest(Model $user): bool
 // Must have either of the trash, restore or destroy permission
 ```
 
-### Creating Super Admin
+## Assigning Permissions to Users
 
-Run the artisan command `php artisan larapermissions:create-super-admin`.
+To assign permissions to users, get the list of available permissions by calling the `NjDigitalLab\LaraPermissions\PermissionsList::getPermissionsList()`. This will fetch the list of permissions available based on the Policies that have been created so far.
 
-The Super Admin will be able to perform any action.
+For example, if you created a `PostPolicy.php` and `UserPolicy.php` file, the following permissions will be available:
+
+```php
+[
+    'post' => ['post:create', 'post:update', 'post:trash', 'post:restore', 'post:destroy'],
+    'user' => ['user:create', 'user:update', 'user:trash', 'user:restore', 'user:destroy'],
+]
+```
+
+In your create/edit user view file, you can loop through the array and display the permissions and use checkboxes to select which permissions the user should have. The submitted permissions should be saved to the `permissions` attribute on the user model.
+
+![Alt Text](./images/user-view.png)
+
+## Adding Custom Permissions
+
+By default, `create`, `update`, `trash`, `restore`, `destroy` are the only available permissions. If you want to add another permission to the mix, you have to define a `customPermissions` method on your permissions class that will return an array of permissions. The array key is the name that you will use for the policy checks and the value will be the list of permissions needed for the policy check to pass.
+
+```php
+...
+
+class UserPermissions extends Permissions
+{
+    ....
+
+    public static function customPermissions(): array
+    {
+        $id = static::getDomainId();
+
+        return ['download' => [$id.':download']];
+    }
+}
+```
+
+Then in your policy file, you will add the check.
+
+```php
+...
+
+class UserPolicy extends Policy
+{
+    /**
+     * Get the permissions class name.
+     */
+    public function getPermissionsClassName(): string
+    {
+        return UserPermissions::class;
+    }
+
+    /**
+     * Check if the user can download.
+     */
+    public function download(User $user, Model $model): bool
+    {
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+        
+        return $this->hasAbility('download');
+    }
+}
+```

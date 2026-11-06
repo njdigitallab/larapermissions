@@ -14,6 +14,9 @@ Trait LaraPermissions
         return $this->super_admin === 1;
     }
 
+    /**
+     * Get the list of user permissions.
+     */
     public function getPermissions(): array
     {
         return $this->permissions;
@@ -25,7 +28,7 @@ Trait LaraPermissions
     protected function permissions(): Attribute
     {
         return Attribute::make(
-            get: fn (string $value) => json_decode($value),
+            get: fn (?string $value) => empty($value) ? [] : json_decode($value),
             set: fn (array $value) => json_encode($value),
         );
     }

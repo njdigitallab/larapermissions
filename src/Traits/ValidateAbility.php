@@ -11,14 +11,16 @@ Trait ValidateAbility
      */
     public function hasAbility(string $ability): bool
     {
+        $ability = Str::snake($ability);
         $class = $this->getPermissionsClassName();
-        $method = 'get'.Str::studly($ability).'Permissions';
 
-        if (! method_exists($class, $method)) {
-            return false;
+        $list = $class::getPermissionsList();
+
+        if (! array_key_exists($ability, $list)) {
+            return true;
         }
 
-        $permissions = $class::$method();
+        $permissions = $list[$ability];
 
         if (empty($permissions)) {
             return true;

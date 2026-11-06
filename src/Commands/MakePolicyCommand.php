@@ -133,7 +133,7 @@ class MakePolicyCommand extends Command
      */
     protected function policyNamespace(): string
     {
-        return 'App\Policies\\'.rtrim(str_replace('/', '\\', $this->relativePath()), '\\');
+        return rtrim('App\Policies\\'.str_replace('/', '\\', $this->relativePath()), '\\');
     }
 
     /**
@@ -141,7 +141,7 @@ class MakePolicyCommand extends Command
      */
     protected function permissionNamespace(): string
     {
-        return 'App\Permissions\\'.rtrim(str_replace('/', '\\', $this->relativePath()), '\\');
+        return rtrim('App\Permissions\\'.str_replace('/', '\\', $this->relativePath()), '\\');
     }
 
     /**
@@ -149,7 +149,7 @@ class MakePolicyCommand extends Command
      */
     protected function policyUseStatement(): string
     {
-        $statement = 'App\Permissions\\'.str_replace('/', '\\', $this->relativePath());
+        $statement = rtrim('App\Permissions\\'.str_replace('/', '\\', $this->relativePath()));
 
         return $statement.$this->permissionClassname();
     }
